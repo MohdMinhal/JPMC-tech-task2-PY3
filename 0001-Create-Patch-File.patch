@@ -1,0 +1,197 @@
+From 054cd20472c8f033f5a1ae6a714c277ef7eee670 Mon Sep 17 00:00:00 2001
+From: Mohd Minhal <mohdminhal.001@gmail.com>
+Date: Sun, 2 Oct 2022 22:15:05 +0530
+Subject: [PATCH] Create Patch File
+
+---
+ 0001-Create-Patch-File.patch | 178 -----------------------------------
+ 1 file changed, 178 deletions(-)
+ delete mode 100644 0001-Create-Patch-File.patch
+
+diff --git a/0001-Create-Patch-File.patch b/0001-Create-Patch-File.patch
+deleted file mode 100644
+index 109dc0e..0000000
+--- a/0001-Create-Patch-File.patch
++++ /dev/null
+@@ -1,178 +0,0 @@
+-From 66cacffa8956d068fe769dea7e36b75a7f070019 Mon Sep 17 00:00:00 2001
+-From: your_name <your_email_address>
+-Date: Sun, 2 Oct 2022 21:59:59 +0530
+-Subject: [PATCH] Create Patch File
+-
+----
+- package-lock.json |  2 +-
+- package.json      |  2 +-
+- src/App.tsx       | 37 +++++++++++++++++++++++++++----------
+- src/Graph.tsx     | 17 ++++++++++++-----
+- tsconfig.json     |  2 +-
+- 5 files changed, 42 insertions(+), 18 deletions(-)
+-
+-diff --git a/package-lock.json b/package-lock.json
+-index 3c8c001..c062360 100644
+---- a/package-lock.json
+-+++ b/package-lock.json
+-@@ -19608,4 +19608,4 @@
+-       }
+-     }
+-   }
+--}
+-+}
+-\ No newline at end of file
+-diff --git a/package.json b/package.json
+-index a8ddff6..1edc483 100644
+---- a/package.json
+-+++ b/package.json
+-@@ -36,4 +36,4 @@
+-     "source-map-loader": "^0.2.4",
+-     "typescript": "^3.2.4"
+-   }
+--}
+-+}
+-\ No newline at end of file
+-diff --git a/src/App.tsx b/src/App.tsx
+-index 0728518..83d27c8 100755
+---- a/src/App.tsx
+-+++ b/src/App.tsx
+-@@ -6,8 +6,9 @@ import './App.css';
+- /**
+-  * State declaration for <App />
+-  */
+--interface IState {
+-+ interface IState {
+-   data: ServerRespond[],
+-+  showGraph: boolean,
+- }
+- 
+- /**
+-@@ -22,26 +23,42 @@ class App extends Component<{}, IState> {
+-       // data saves the server responds.
+-       // We use this state to parse data down to the child element (Graph) as element property
+-       data: [],
+-+      showGraph: false,
+-     };
+-   }
+- 
+-   /**
+--   * Render Graph react component with state.data parse as property data
+--   */
+--  renderGraph() {
+-+ * Render Graph react component with state.data parse as property data
+-+ */
+-+renderGraph() {
+-+  if (this.state.showGraph){
+-     return (<Graph data={this.state.data}/>)
+-   }
+-+}
+- 
+-   /**
+--   * Get new data from server and update the state with the new data
+--   */
+--  getDataFromServer() {
+-+ * Get new data from server and update the state with the new data
+-+ */
+-+getDataFromServer() {
+-+  let x = 0;
+-+  const interval = setInterval(() => {
+-     DataStreamer.getData((serverResponds: ServerRespond[]) => {
+-+      // getData() gets the data from the server and when that process is complete
+-       // Update the state by creating a new array of data that consists of
+-       // Previous data in the state and the new data from server
+--      this.setState({ data: [...this.state.data, ...serverResponds] });
+-+      this.setState({
+-+        data: serverResponds,
+-+        showGraph: true,
+-+        // set showGraph to true
+-+        // as soon as the data from the server comes back to the requester
+-+      });
+-     });
+--  }
+-+    x++;
+-+    if (x > 1000){
+-+      clearInterval(interval);
+-+    }
+-+  },100);
+-+}
+- 
+-   /**
+-    * Render the App react component
+-@@ -71,4 +88,4 @@ class App extends Component<{}, IState> {
+-   }
+- }
+- 
+--export default App;
+-+export default App;
+-\ No newline at end of file
+-diff --git a/src/Graph.tsx b/src/Graph.tsx
+-index ec1430e..6b7e0af 100644
+---- a/src/Graph.tsx
+-+++ b/src/Graph.tsx
+-@@ -14,10 +14,11 @@ interface IProps {
+-  * Perspective library adds load to HTMLElement prototype.
+-  * This interface acts as a wrapper for Typescript compiler.
+-  */
+--interface PerspectiveViewerElement {
+-+interface PerspectiveViewerElement  extends HTMLElement {
+-   load: (table: Table) => void,
+- }
+- 
+-+
+- /**
+-  * React component that renders Perspective based on data
+-  * parsed from its parent through data property.
+-@@ -32,7 +33,8 @@ class Graph extends Component<IProps, {}> {
+- 
+-   componentDidMount() {
+-     // Get element to attach the table from the DOM.
+--    const elem: PerspectiveViewerElement = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
+-+    console.log('rendering');
+-+    const elem = document.getElementsByTagName('perspective-viewer')[0] as unknown as PerspectiveViewerElement;
+- 
+-     const schema = {
+-       stock: 'string',
+-@@ -41,14 +43,19 @@ class Graph extends Component<IProps, {}> {
+-       timestamp: 'date',
+-     };
+- 
+--    if (window.perspective && window.perspective.worker()) {
+-+    if (window.perspective) {
+-       this.table = window.perspective.worker().table(schema);
+-     }
+-     if (this.table) {
+-       // Load the `table` in the `<perspective-viewer>` DOM reference.
+--
+-+      console.log('change table');
+-       // Add more Perspective configurations here.
+-       elem.load(this.table);
+-+      elem.setAttribute('view', 'y_line');
+-+      elem.setAttribute('column-pivots', '["stock"]');
+-+      elem.setAttribute('row-pivots', '["timestamp"]');
+-+      elem.setAttribute('columns', '["top_ask_price"]');
+-+      elem.setAttribute('aggregates', '{"stock":"distinct count","top_ask_price":"avg","top_bid_price":"avg","timestamp":"distinct count"}');
+-     }
+-   }
+- 
+-@@ -70,4 +77,4 @@ class Graph extends Component<IProps, {}> {
+-   }
+- }
+- 
+--export default Graph;
+-+export default Graph;
+-\ No newline at end of file
+-diff --git a/tsconfig.json b/tsconfig.json
+-index 0980b23..755462a 100644
+---- a/tsconfig.json
+-+++ b/tsconfig.json
+-@@ -22,4 +22,4 @@
+-   "include": [
+-     "src"
+-   ]
+--}
+-+}
+-\ No newline at end of file
+--- 
+-2.37.3.windows.1
+-
+-- 
+2.37.3.windows.1
+
